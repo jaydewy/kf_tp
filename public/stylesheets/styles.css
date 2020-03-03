@@ -6,55 +6,83 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* The grid container */
+.grid-container {
+  display: grid;
+  grid-template-areas:
+    'logo toolbar toolbar toolbar toolbar toolbar'
+    'sidebar content content content content content'
+    'footer footer footer footer footer footer';
+  /* grid-column-gap: 10px; - if you want gap between the columns */
+}
+
 /* Style the header */
-.header {
-  grid-area: header;
+.toolbar {
+  grid-area: toolbar;
   background-color: #f1f1f1;
   padding: 30px;
   text-align: center;
   font-size: 35px;
 }
 
-/* The grid container */
-.grid-container {
-  display: grid;
-  grid-template-areas:
-    'header header header header header header'
-    'left left middle middle middle middle'
-    'footer footer footer footer footer footer';
-  /* grid-column-gap: 10px; - if you want gap between the columns */
+/* Style the logo */
+.logo {
+  grid-area: logo;
+  background-color: #f1f1f1;
+  padding: 30px;
 }
 
-.left,
-.middle {
+.sidebar, .content {
   padding: 10px;
 }
 
 /* Style the left column */
-.left {
-  grid-area: left;
+.sidebar {
+  grid-area: sidebar;
 }
 
 /* Style the middle column */
-.middle {
-  grid-area: middle;
+.content {
+  grid-area: content;
 }
 
 /* Style the footer */
-.footer {
+footer {
   grid-area: footer;
   background-color: #f1f1f1;
   padding: 10px;
-  text-align: center;
+  text-align: left;
 }
 
 /* Responsive layout - makes the two columns stack on top of each other instead of next to each other */
 @media (max-width: 600px) {
   .grid-container  {
     grid-template-areas:
-      'header header header header header header'
-      'left left left left left left'
-      'middle middle middle middle middle middle'
+      'toolbar toolbar toolbar toolbar toolbar toolbar'
+      'sidebar sidebar sidebar sidebar sidebar sidebar'
+      'content content content content content content'
       'footer footer footer footer footer footer';
   }
+}
+
+/* table styling */
+table {
+  border: 1px solid black;
+}
+
+tr:nth-child(even) {
+  background-color: #eee;
+}
+
+tr:nth-child(odd) {
+  background-color: #fff;
+}
+
+td {
+  border: 1px solid black;
+  padding: 0.5em;
+}
+
+.logo_img {
+  width: 175px;
 }

@@ -9,6 +9,13 @@
   $doc_root = substr($_SERVER['SCRIPT_NAME'], 0, $public_end);
   define("WWW_ROOT", $doc_root);
 
-  require_once('function.php');
+  require_once('functions.php');
+  require_once('database.php');
+  require_once('query_functions.php');
+
+  // global variables
+  $reg_year = '2020'; // Current year for registration reasons
+
+  $db = db_connect();
 
 ?>
