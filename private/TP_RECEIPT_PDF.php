@@ -10,7 +10,7 @@
   		$this->SetFont('helvetica', 'B', 20);
       $this->SetY(15);
   		// Title
-      $title = 'Kinmount Fair Trailer Park ' . '2020';
+      $title = 'Kinmount Fair Trailer Park ' . '2021';
   		$this->Cell(0, 15, $title, 0, false, 'C', 0, '', 0, false, 'M', 'M');
     }
     // Page Footer

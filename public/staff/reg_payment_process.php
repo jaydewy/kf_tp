@@ -143,27 +143,27 @@ $html .= <<<EOT
 </tr>
 <tr>
   <td>&nbsp;&nbsp;Adult Weekend</td>
-  <td class="uline">x$adult_wknd_admits</td>
+  <td class="uline">x$adult_wknd_admits @$adult_wknd_fee</td>
   <td class="uline">$$adult_wknd_sub</td>
 </tr>
 <tr>
   <td>&nbsp;&nbsp;Adult Day</td>
-  <td class="uline">x$adult_day_admits</td>
+  <td class="uline">x$adult_day_admits @$adult_day_fee</td>
   <td class="uline">$$adult_day_sub</td>
 </tr>
 <tr>
   <td>&nbsp;&nbsp;Child Weekend</td>
-  <td class="uline">x$child_wknd_admits</td>
+  <td class="uline">x$child_wknd_admits @$child_wknd_fee</td>
   <td class="uline">$$child_wknd_sub</td>
 </tr>
 <tr>
   <td>&nbsp;&nbsp;Child Day</td>
-  <td class="uline">x$child_day_admits</td>
+  <td class="uline">x$child_day_admits @$child_day_fee</td>
   <td class="uline">$$child_day_sub</td>
 </tr>
 <tr>
   <td>&nbsp;&nbsp;Car Pass</td>
-  <td class="uline">x$vehicle_admits</td>
+  <td class="uline">x$vehicle_admits @$vehicle_fee</td>
   <td class="uline">$$vehicle_sub</td>
 </tr>
 <tr>
