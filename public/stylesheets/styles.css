@@ -86,3 +86,9 @@ td {
 .logo_img {
   width: 175px;
 }
+
+/* lot images */
+.lot-image {
+  margin: auto;
+  max-width: 75%;
+}

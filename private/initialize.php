@@ -13,6 +13,8 @@
   require_once('database.php');
   require_once('query_functions.php');
 
+  date_default_timezone_set('America/Thunder_Bay');
+
   // global variables
   $reg_year = '2020'; // Current year for registration reasons
 

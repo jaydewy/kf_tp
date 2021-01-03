@@ -3,6 +3,7 @@
 
   if (isset($_GET['lot_id'])) {
     $lot = get_lot_by_id($_GET['lot_id']);
+    $img_fname = '../images/TP Lots/lot_id_' . make_id_string($_GET['lot_id']) . '.jpg';
   }
   else {
     redirect_to(url_for('/staff/lots.php'));
@@ -25,6 +26,8 @@
       <p><?php echo 'Lot type: ' . $lot['lot_type']; ?></p>
       <p><?php echo 'Lot value: $' . $lot['lot_value']; ?></p>
       <p><?php echo 'Lot reservable: ' . $lot['lot_reservable']; ?></p>
+      <p><?php echo 'Notes: ' . $lot['notes']; ?></p>
+      <img class="lot-image" src="<?php echo $img_fname; ?>" alt="Lot image not available">
       <h2>Customer information</h2>
       <p><?php echo 'First name: ' . $lot['first_name']; ?></p>
       <p><?php echo 'Last name: ' . $lot['last_name']; ?></p>

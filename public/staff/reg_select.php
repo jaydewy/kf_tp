@@ -12,14 +12,14 @@
   }
   else redirect_to(url_for('/staff/registration.php'));
 
-  $page_title = 'Registration - Search Result';
+  $page_title = 'Registration - Select Lots';
 
   require_once(SHARED_PATH . '/staff_header.php');
   require_once(SHARED_PATH . '/staff_sidebar.php');
 ?>
 
     <div class="content">
-      <form id="reg_select" action="reg_admission.php" method="POST">
+      <form id="reg_select" action="reg_update.php" method="get">
         <table class="">
           <caption>Lots</caption>
           <thead>
@@ -39,6 +39,7 @@
             <?php } ?>
           </tbody>
         </table>
+        <?php // $lot_ids = u(serialize($lot_ids)); ?>
         <input type="submit" value="Register">
       </form>
     </div>

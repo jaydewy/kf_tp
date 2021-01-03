@@ -24,8 +24,15 @@
   }
 
   function confirm_result_set($result_set) {
-    if (!$result_set) {
-      exit("Database query failed.");
+    global $db;
+
+    if ($result_set) {
+      return $result_set;
+    }
+    else {
+      echo mysqli_error($db);
+      db_disconnect($db);
+      exit;
     }
   }
 ?>

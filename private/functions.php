@@ -20,6 +20,10 @@ function h($string="") {
   return htmlspecialchars($string);
 }
 
+function hd($string="") {
+  return htmlspecialchars_decode($string);
+}
+
 function error_404() {
   header($_SERVER["SERVER_PROTOCOL"] . " 404 Not Found");
   exit();
@@ -41,6 +45,19 @@ function is_post_request() {
 
 function is_get_request() {
   return $_SERVER['REQUEST_METHOD'] == 'GET';
+}
+
+function make_id_string($id) {
+  if ($id <= 9 && $id >= 0) {
+    return '00' . "$id";
+  }
+  else if ($id <= 99 && $id >= 10) {
+    return '0' . "$id";
+  }
+  else if ($id <= 999 && $id >= 100) {
+    return "$id";
+  }
+  else return;
 }
 
 ?>

@@ -26,12 +26,12 @@ else {
 <?php require_once(SHARED_PATH . '/staff_sidebar.php'); ?>
 
     <div class="content">
-      <form class="customer-form" id="update_customer" action="" method="post"> <!-- need to add labels and breaks still -->
-        First Name: <?php echo h($customer['first_name']); ?>
-        Last Name: <?php echo h($customer['last_name']); ?>
-        Address: <input type="text" name="address" value="<?php echo h($customer['address']); ?>">
-        City: <input type="text" name="city" value="<?php echo h($customer['city']); ?>">
-        Province: <select name="prov">
+      <form class="customer-form" id="update_customer" action="" method="post">
+        First Name: <?php echo h($customer['first_name']); ?><br>
+        Last Name: <?php echo h($customer['last_name']); ?><br>
+        <label>Address: <input type="text" name="address" value="<?php echo h($customer['address']); ?>"></label><br>
+        <label>City: <input type="text" name="city" value="<?php echo h($customer['city']); ?>"></label><br>
+        <label>Province: <select name="prov">
                     <option value="AB">Alberta</option>
                     <option value="BC">British Columbia</option>
                     <option value="MB">Manitoba</option>
@@ -45,11 +45,11 @@ else {
                     <option value="QC">Quebec</option>
                     <option value="SK">Saskatchewan</option>
                     <option value="YT">Yukon</option>
-                  </select>
-        Postal Code: <input type="text" name="postal_code" value="<?php echo h($customer['postal_code']); ?>">
-        Telephone: <input type="text" name="telephone" value="<?php echo h($customer['telephone']); ?>">
-        Cell Phone: <input type="text" name="cell_phone" value="<?php echo h($customer['cell_phone']); ?>">
-        Email: <input type="text" name="email" value="<?php echo h($customer['email']); ?>">
+                  </select></label><br>
+        <label>Postal Code: <input type="text" name="postal_code" value="<?php echo h($customer['postal_code']); ?>"></label><br>
+        <label>Telephone: <input type="text" name="telephone" value="<?php echo h($customer['telephone']); ?>"></label><br>
+        <label>Cell Phone: <input type="text" name="cell_phone" value="<?php echo h($customer['cell_phone']); ?>"></label><br>
+        <label>Email: <input type="text" name="email" value="<?php echo h($customer['email']); ?>"></label><br>
         <input type="hidden" name="id" value="<?php echo h($_GET['people_id']); ?>">
         <input type="submit" value="Update"><input type="reset">
       </form>

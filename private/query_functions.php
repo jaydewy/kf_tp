@@ -55,7 +55,7 @@ function insert_customer($last_name, $first_name, $address, $city, $prov, $posta
 function update_customer($id, $address, $city, $prov, $postal_code, $telephone, $cell_phone, $email) {
   global $db;
 
-  $sql = 'UPDATE People SET ';
+  $sql = 'UPDATE people SET ';
   $sql .= 'address=\'' . $address;
   $sql .= '\', city=\'' . $city . '\', prov=\'' . $prov . '\', postal_code=\'' . $postal_code;
   $sql .= '\', telephone=\'' . $telephone . '\', cell_phone=\'' . $cell_phone . '\', email=\'' . $email . '\' ';
@@ -96,10 +96,10 @@ function delete_customer($id) {
 function get_all_lots() {
   global $db;
 
-  $sql = 'SELECT * FROM Lots ';
-  $sql .= 'LEFT JOIN People '; // use LEFT JOIN because we want vacant lots also.
-  $sql .= 'ON Lots.people_id=People.people_id ';
-  $sql .= 'ORDER BY Lots.lot_id ASC';
+  $sql = 'SELECT * FROM lots ';
+  $sql .= 'LEFT JOIN people '; // use LEFT JOIN because we want vacant lots also.
+  $sql .= 'ON lots.people_id=people.people_id ';
+  $sql .= 'ORDER BY lots.lot_id ASC';
 
   $lot_set = mysqli_query($db, $sql);
   confirm_result_set($lot_set);
@@ -123,10 +123,10 @@ function get_vacant_lots() {
 function get_lot_by_id($id) {
   global $db;
 
-  $sql = 'SELECT * FROM Lots ';
-  $sql .= 'INNER JOIN People ';
-  $sql .= 'ON Lots.people_id=People.people_id ';
-  $sql .= 'WHERE Lots.lot_id=\'' . $id . '\'';
+  $sql = 'SELECT * FROM lots ';
+  $sql .= 'INNER JOIN people ';
+  $sql .= 'ON lots.people_id=people.people_id ';
+  $sql .= 'WHERE lots.lot_id=\'' . $id . '\'';
 
   $result = mysqli_query($db, $sql);
   confirm_result_set($result);
@@ -139,8 +139,8 @@ function get_lot_by_id($id) {
 function get_lots_by_customer($cust_id) {
   global $db;
 
-  $sql = 'SELECT * FROM Lots ';
-  $sql .= 'INNER JOIN People ';
+  $sql = 'SELECT * FROM lots ';
+  $sql .= 'INNER JOIN people ';
   $sql .= 'ON Lots.people_id=People.people_id ';
   $sql .= 'WHERE People.people_id=\'' . $cust_id . '\'';
 
@@ -158,6 +158,38 @@ function get_lot_customer($lot_id) {
 
   $result = mysqli_query($db, $sql);
   confirm_result_set($result);
+  $result = mysqli_fetch_assoc($result);
+
+  return $result['people_id'];
+}
+
+function get_lot_customer_name($lot_id) {
+  global $db;
+
+  $sql = 'SELECT people_name FROM lots ';
+  $sql .= 'INNER JOIN people ON ';
+  $sql .= 'lot.people_id=people.people_id ';
+  $sql .= 'WHERE lot_id=\'' . $lot_id . '\'';
+
+  $result = mysqli_query($db, $sql);
+  confirm_result_set($result);
+  $name = mysqli_fetch_assoc($result);
+
+  return $name['people_name'];
+}
+
+function get_lot_customers($lot_list) {
+  global $db;
+
+  $sql = 'SELECT people_id FROM lots WHERE ';
+  $sql .= 'lot_id IN (';
+  foreach ($lot_list as $lot_id) {
+    $sql .= "\'$lot_id\'";
+  }
+  $sql .= ')';
+
+  $result = mysqli_query($db, $sql);
+  confirm_result_set($result);
 
   return $result;
 }
@@ -165,7 +197,7 @@ function get_lot_customer($lot_id) {
 function update_lot_customer($lot_id, $cust_id) {
   global $db;
 
-  $sql = 'UPDATE Lots ';
+  $sql = 'UPDATE lots ';
   $sql .= 'SET people_id=\'' . $cust_id . '\' ';
   $sql .= 'WHERE lot_id=\'' . $lot_id . '\'';
 
@@ -183,30 +215,19 @@ function update_lot_customer($lot_id, $cust_id) {
 
 /* Waitlist queries */
 
-function add_to_waitlist($cust_id, $trailer_size, $lot_preference, $notes) {
+// add_to_waitlist ...
+// input:
+// output:
+function add_to_waitlist($cust_id, $trailer_size, $date, $time, $lot_preference, $notes) {
   global $db;
 
-  $sql = 'INSERT INTO Waitlist (people_id, trailer_size, lot_preference, notes) ';
-  $sql .= 'VALUES (\'' . $cust_id . '\', \'' . $trailer_size . '\', \'' . $lot_preference . '\', \'' . $notes . '\'';
+  $stmt = $db->prepare("INSERT INTO waitlist (people_id,trailer_size,date_added,time_added,lot_preference,notes) VALUES (?,?,?,?,?,?)");
+  $stmt->bind_param("iissss",$cust_id,$trailer_size,$date,$time,$lot_preference,$notes);
+  $stmt->execute();
 
-  $result = mysqli_query($db, $sql);
-  if ($result) {
-    return $result;
-  }
-  else {
-    echo mysqli_error($db);
-    db_disconnect($db);
-    exit;
-  }
 }
 
 function remove_from_waitlist($cust_id) {
-
-
-
-
-
-
 
 }
 
@@ -327,17 +348,43 @@ function reg_lot_list($lot_list) {
   $sql .= "OR payment_type IS NULL)"; // this condition ensures that records for
                                       //  lots with no prepayments are returned
 
-  echo $sql; // testing purposes, remove in production
+//  echo $sql; // testing purposes, remove in production
 
   $result = mysqli_query($db, $sql);
 
-  if ($result) {
-    return $result;
+  confirm_result_set($result);
+  return $result;
+}
+
+function get_fees($fee_type) {
+  global $db;
+
+  $sql = 'SELECT * FROM fees ';
+  $sql .= 'WHERE fee_type=' . '\'' . $fee_type . '\'';
+
+  $result = mysqli_query($db, $sql);
+  confirm_result_set($result);
+  $result = mysqli_fetch_assoc($result);
+  $result = $result['fee_amount'];
+  return $result;
+}
+
+// returns payment amount
+function get_payment($lot_id) {
+  global $db;
+  global $reg_year;
+
+  $sql = 'SELECT * FROM payments ';
+  $sql .= 'WHERE `lot_id`=\'' . $lot_id . '\' ';
+  $sql .= 'AND `year_paid`=\'' . $reg_year . '\'';
+  $sql .= 'AND `payment_type`=\'preregistration\'';
+
+  $result = mysqli_query($db,$sql);
+  confirm_result_set($result);
+  $payment = mysqli_fetch_assoc($result);
+  if ($payment == NULL) {
+    return 0;
   }
-  else {
-    echo mysqli_error($db);
-    db_disconnect($db);
-    exit;
-  }
+  else return $payment['payment_amount'];
 }
 ?>
