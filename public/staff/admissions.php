@@ -1,4 +1,18 @@
 <?php require_once('../../private/initialize.php'); ?>
+<?php
+  if (is_post_request()) {
+    if (isset($_POST['lot_id'])) {
+      $lot_id = $_POST['lot_id'];
+    }
+    else $lot_id = NULL;
+    $license_plate = $_POST['licence_plate'];
+    $adult_admits = $_POST['adult_wknd_admits'] + $_POST['adult_day_admits'];
+    $child_admits = $_POST['child_wknd_admits'] + $_POST['child_day_admits'];
+    $additional_vehicles = $_POST['vehicle_admits'];
+    insert_admission($licence_plate, $adult_admits, $child_admits, $additional_vehicles);
+    redirect_to(url_for('/staff/admissions.php'));
+  }
+?>
 
 <?php require_once(SHARED_PATH . '/staff_header.php'); ?>
 <?php require_once(SHARED_PATH . '/staff_sidebar.php'); ?>

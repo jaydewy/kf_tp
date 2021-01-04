@@ -2,12 +2,12 @@
   require_once('../../private/initialize.php');
 
   if (is_post_request()) {
-    
+
   }
 
-  echo 'Prior to customer query';
+  // echo 'Prior to customer query';
   $customers = get_all_customers();
-  echo 'Customer query ran';
+  // echo 'Customer query ran';
 
   $page_title = 'Waitlist';
 

@@ -73,7 +73,7 @@ function update_customer($id, $address, $city, $prov, $postal_code, $telephone, 
   }
 }
 
-function delete_customer($id) {
+function delete_customer($id) { //add some security here to avoid deleting all customers
   global $db;
 
   $sql = 'DELETE FROM people ';
@@ -386,5 +386,24 @@ function get_payment($lot_id) {
     return 0;
   }
   else return $payment['payment_amount'];
+}
+
+/* Admission queries */
+// insert_admission() adds an entry to the admissions table, for trailer park purposes
+//  Input:
+//  Output:
+function insert_admission($lot_id, $licence_plate, $adult_admits, $child_admits, $additional_vehicles) {
+  global $db;
+
+  $sql = 'INSERT INTO admissions (lot_id, licence_plate, adult_admissions, child_admissions, additional_vehicles) ';
+  $sql .= 'VALUES (' . '\'' . $lot_id . '\',' . '\'' . $licence_plate . '\',';
+  $sql .= '\'' . $adult_admits . '\',' . '\'' . $child_admits . '\',';
+  $sql .= '\'' . $additional_vehicles . '\'' . ');'
+
+  echo $sql;
+
+  $result = mysqli_query($db,$sql);
+  confirm_result_set($result);
+  return $result;
 }
 ?>
