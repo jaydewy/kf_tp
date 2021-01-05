@@ -1,24 +1,10 @@
 <?php require_once('../../private/initialize.php'); ?>
-<?php
-  if (is_post_request()) {
-    if (isset($_POST['lot_id'])) {
-      $lot_id = $_POST['lot_id'];
-    }
-    else $lot_id = NULL;
-    $license_plate = $_POST['licence_plate'];
-    $adult_admits = $_POST['adult_wknd_admits'] + $_POST['adult_day_admits'];
-    $child_admits = $_POST['child_wknd_admits'] + $_POST['child_day_admits'];
-    $additional_vehicles = $_POST['vehicle_admits'];
-    insert_admission($licence_plate, $adult_admits, $child_admits, $additional_vehicles);
-    redirect_to(url_for('/staff/admissions.php'));
-  }
-?>
-
 <?php require_once(SHARED_PATH . '/staff_header.php'); ?>
 <?php require_once(SHARED_PATH . '/staff_sidebar.php'); ?>
 
+<!-- Need to add menu to select lot they are joining (maybe) -->
     <div class="content">
-      <form id="admission_form" action="" method="post">
+      <form id="admission_form" action="admit_process.php" method="get">
         <fieldset>
           <legend>Weekend Passes</legend>
           <label>Adult weekend
@@ -38,6 +24,7 @@
           <label>Daily parking
           <input type="number" name="vehicle_admits" value="0" min="0"></label><br>
         </fieldset>
+        <input type="hidden" name="licence_plate" value="">
         <input type="submit" value="Proceed">
       </form>
     </div>

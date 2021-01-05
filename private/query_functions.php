@@ -392,15 +392,16 @@ function get_payment($lot_id) {
 // insert_admission() adds an entry to the admissions table, for trailer park purposes
 //  Input:
 //  Output:
-function insert_admission($lot_id, $licence_plate, $adult_admits, $child_admits, $additional_vehicles) {
+//  Need to fic lot_id foreign key issue: must either belong to lots table or be null
+function insert_admission($licence_plate, $adult_admits, $child_admits, $additional_vehicles, $lot_id = 0) {
   global $db;
 
   $sql = 'INSERT INTO admissions (lot_id, licence_plate, adult_admissions, child_admissions, additional_vehicles) ';
   $sql .= 'VALUES (' . '\'' . $lot_id . '\',' . '\'' . $licence_plate . '\',';
   $sql .= '\'' . $adult_admits . '\',' . '\'' . $child_admits . '\',';
-  $sql .= '\'' . $additional_vehicles . '\'' . ');'
+  $sql .= '\'' . $additional_vehicles . '\'' . ');';
 
-  echo $sql;
+  echo $sql . ' ';
 
   $result = mysqli_query($db,$sql);
   confirm_result_set($result);
