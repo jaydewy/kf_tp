@@ -1,10 +1,11 @@
 <?php require_once('../../private/initialize.php'); ?>
+<?php $page_title = 'Admissions'; ?>
 <?php require_once(SHARED_PATH . '/staff_header.php'); ?>
 <?php require_once(SHARED_PATH . '/staff_sidebar.php'); ?>
 
 <!-- Need to add menu to select lot they are joining (maybe) -->
     <div class="content">
-      <form id="admission_form" action="admit_process.php" method="get">
+      <form id="admission_form" action="admit_payment.php" method="get">
         <fieldset>
           <legend>Weekend Passes</legend>
           <label>Adult weekend
