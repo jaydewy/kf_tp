@@ -1,8 +1,6 @@
 <?php
   require_once('../../private/initialize.php');
   require_once(PRIVATE_PATH . '/TP_RECEIPT_PDF.php');
-  // header('Content-Type: application/pdf');
-  // echo('beginning');
   // if(is_post_request()) {
     // get form data from reg_payment.php
     $lot_ids = $_POST['lot_ids'];
@@ -22,6 +20,9 @@
     $child_day_fee = get_fees('child_daily');
     $vehicle_fee = get_fees('parking_daily');
     $grand_total = 0;
+    // insert into database
+    // insert_admission($licence_plate, $adult_admits, $child_admits, $additional_vehicles);
+
     // pdf receipt setup ------------------------------------------------------
     $pdf = new TP_RECEIPT_PDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     // set document information

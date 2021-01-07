@@ -388,6 +388,22 @@ function get_payment($lot_id) {
   else return $payment['payment_amount'];
 }
 
+// insert_reg_payment() inserts a new payment record in the db for a registration payment.
+function insert_reg_payment($lot_id, $total, $method, $year_paid = 2021) {
+  global $db;
+
+  $date = date('Y-m-d');
+  $type = 'registration';
+}
+
+// insert_admit_payment() inserts a new payment record in the db for an admissions payment
+function insert_admit_payment($total, $method) {
+  global $db;
+
+  $date = date('Y-m-d');
+  $type = 'admission';
+}
+
 /* Admission queries */
 // insert_admission() adds an entry to the admissions table, for trailer park purposes
 //  Input:
