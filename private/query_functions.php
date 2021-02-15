@@ -369,29 +369,30 @@ function get_fees($fee_type) {
   return $result;
 }
 
+// insert_checkin() inserts a new checkin/registration record to the checkins table
+//  Input:
+//  Output:
+function insert_checkin($lot_id, $payment_id, $admit_id) {
+  global $db;
+
+  $date = date('Y-m-d');
+
+  if ($admit_id == 0) {
+    $sql = 'INSERT INTO checkins (date,lot_id,payment_id) ';
+    $sql .= 'VALUES (' . "\'$date\', " . "\'$lot_id\', " . "\'$payment_id\')";
+  }
+  else {
+    $sql = 'INSERT INTO checkins (date,lot_id,payment_id,admit_id) ';
+    $sql .= 'VALUES (' . "\'$date\', " . "\'$lot_id\', " . "\'$payment_id\'" . "\'$admit_id\')";
+  }
+
+  $result = mysqli_query($db, $sql);
+  confirm_result_set($result);
+  $reg_id = mysqli_insert_id($db);
+  return $reg_id;
+}
 
 /* Payment queries */
-
-/*
-// returns payment amount
-function get_payment($lot_id) {
-  global $db;
-  global $reg_year;
-
-  $sql = 'SELECT * FROM payments ';
-  $sql .= 'WHERE `lot_id`=\'' . $lot_id . '\' ';
-  $sql .= 'AND `year_paid`=\'' . $reg_year . '\'';
-  $sql .= 'AND `payment_type`=\'preregistration\'';
-
-  $result = mysqli_query($db,$sql);
-  confirm_result_set($result);
-  $payment = mysqli_fetch_assoc($result);
-  if ($payment == NULL) {
-    return 0;
-  }
-  else return $payment['payment_amount'];
-}
-*/
 
 // insert_payment() inserts a new payment record to the payments table
 //  Input: $amount - total payment amount
@@ -402,9 +403,9 @@ function insert_payment($amount, $method) {
   $date = date('Y-m-d');
 
   $sql = 'INSERT INTO payments (payment_date,payment_amount,payment_method) ';
-  $sql .= 'VALUES (' . "\'$date\'," . "\'$amount\'," . "\'$method\')";
+  $sql .= 'VALUES (' . '\'' . $date . '\',' . '\'' . $amount . '\',' . '\'' . $method . '\')';
 
-  echo $sql;
+  echo $sql . "\n"; // testing!
 
   $result = mysqli_query($db,$sql);
   confirm_result_set($result);
@@ -412,41 +413,30 @@ function insert_payment($amount, $method) {
   return $payment_id;
 }
 
-/*
-// insert_reg_payment() inserts a new payment record in the db for a registration payment.
-function insert_reg_payment($lot_id, $total, $method, $year_paid = 2021) {
-  global $db;
 
-  $date = date('Y-m-d');
-  $type = 'registration';
-}
-
-// insert_admit_payment() inserts a new payment record in the db for an admissions payment
-function insert_admit_payment($total, $method) {
-  global $db;
-
-  $date = date('Y-m-d');
-  $type = 'admission';
-}
-*/
 /* Admission queries */
 // insert_admission() adds an entry to the admissions table, for trailer park purposes
-//  Input:
-//  Output:
-//  Need to fic lot_id foreign key issue: must either belong to lots table or be null
-function insert_admission($licence_plate, $adult_admits, $child_admits, $additional_vehicles, $lot_id = 0) {
+//  Input: $payment_id - the id of the payment used for the admissions
+//         $admits - an assoc array of the form e.g.
+//          [lp => CDDF103, aw => 2, ad => 0, cw => 2, cd => 0, av => 0]
+//          lp: licence_plate, aw: adult_wknd, ad: adult_day, cw: child_wknd, cd: child_day, av: additional_vehicles
+//  Output: the new admit_id
+function insert_admission($payment_id, $admits) {
+  // $licence_plate, $adult_admits, $child_admits, $additional_vehicles
   global $db;
 
-  $sql = 'INSERT INTO admissions (lot_id, licence_plate, adult_admissions, child_admissions, additional_vehicles) ';
-  $sql .= 'VALUES (' . '\'' . $lot_id . '\',' . '\'' . $licence_plate . '\',';
-  $sql .= '\'' . $adult_admits . '\',' . '\'' . $child_admits . '\',';
-  $sql .= '\'' . $additional_vehicles . '\'' . ');';
+  $date = date('Y-m-d');
 
-  echo $sql . ' ';
+  $sql = 'INSERT INTO admissions (payment_id, admit_date, licence_plate, adult_wknd, adult_day, child_wknd, child_day, additional_vehicles) ';
+  $sql .= 'VALUES (' . '\'' . $payment_id . '\',\'' . $date . '\',\'' . $admits['lp'] . '\',\'' . $admits['aw'] . '\',\'';
+  $sql .= $admits['ad'] . '\',\'' . $admits['cw'] . '\',\'' . $admits['cd'] . '\',\'' . $admits['av'] . '\')';
+
+  echo $sql . "\n"; // testing!
 
   $result = mysqli_query($db,$sql);
   confirm_result_set($result);
-  return $result;
+  $admit_id = mysqli_insert_id($db);
+  return $admit_id;
 }
 
 /* Preregistration queries */
@@ -470,12 +460,40 @@ function insert_prereg($lot_id, $payment_id, $notes) {
 
 /* Compound queries - these queries work on more than one table in the db */
 /* functions should use other defined functions to perform inserts etc. */
-function register() {
 
+// register() inserts a row into the payment table, if required, and then inserts
+//   a new row to the admissions table, if required, and into the checkins table
+//   Curresponding to the new payment_id and admit_id (?)
+// Input: $lot_ids - array of lot_ids
+//        $admits - associative array of admissions values in the form
+//          [lot_id1 => [licence_plate, adult_admits, child_admits, additional_vehicles]
+//           lot_id2 => 0]
+//          the value is 0 if there are no admissions for that lot.
+//        $payment - total payment amount
+//        $method - payment method
+// Output: assoc array of lot_id/new id pairs from the checkins table
+function register($lot_ids, $admits, $payment, $method) {
+  global $db;
+  $date = date('Y-m-d');
+  $reg_ids = [];
+
+  $payment_id = insert_payment($payment, $method);
+  foreach ($lot_ids as $lot_id) {
+    if ($admits[$lot_id] == 0) {
+      $admit_id = null;
+    }
+    else {
+      $admit_id = insert_admission($payment_id, $admits[$lot_id]);
+    }
+    $reg_id = insert_checkin($lot_id, $payment_id, $admit_id);
+    $reg_ids[$lot_id] = $reg_id;
+  }
+  return $reg_ids;
 }
 
 // preregister() inserts a row to the payment table and then inserts a row in the
-//   preregistration table corresponding to the new payment_id
+//   preregistration table corresponding to the new payment_id and the lot_id of the lot preregistered
+//   this is repeated for each lot
 // Input: $lot_ids - array of lot_ids
 //        $payment - total payment amount
 //        $method - payment method
@@ -485,11 +503,56 @@ function preregister($lot_ids, $payment, $method) {
 
   $prereg_ids = [];
 
-  $payment_id = insert_payment($amount, $method);
+  $payment_id = insert_payment($payment, $method);
   foreach ($lot_ids as $lot_id) {
     $prereg_id = insert_prereg($lot_id, $payment_id, $notes);
     $prereg_ids[$lot_id] = $prereg_id;
   }
   return $prereg_ids;
 }
+
+// old queries - have been replaced above. Keep down here for now
+/*
+// insert_reg_payment() inserts a new payment record in the db for a registration payment.
+function insert_reg_payment($lot_id, $total, $method, $year_paid = 2021) {
+  global $db;
+
+  $date = date('Y-m-d');
+  $type = 'registration';
+}
+
+// insert_admit_payment() inserts a new payment record in the db for an admissions payment
+function insert_admit_payment($total, $method) {
+  global $db;
+
+  $date = date('Y-m-d');
+  $type = 'admission';
+}
+*/
+/*
+// returns payment amount
+function get_payment($lot_id) {
+  global $db;
+  global $reg_year;
+
+  $sql = 'SELECT * FROM payments ';
+  $sql .= 'WHERE `lot_id`=\'' . $lot_id . '\' ';
+  $sql .= 'AND `year_paid`=\'' . $reg_year . '\'';
+  $sql .= 'AND `payment_type`=\'preregistration\'';
+
+  $result = mysqli_query($db,$sql);
+  confirm_result_set($result);
+  $payment = mysqli_fetch_assoc($result);
+  if ($payment == NULL) {
+    return 0;
+  }
+  else return $payment['payment_amount'];
+}
+
+
+$sql = 'INSERT INTO admissions (payment_id, date, licence_plate, adult_wknd, adult_day, child_wknd, child_day, additional_vehicles) ';
+$sql .= 'VALUES (' . '\'' . $admits['lp'] . '\',\'' . $admits['aw'] . '\',\'';
+$sql .= $admits['ad'] . '\',\'' . $admits['cw'] . '\',\'' . $admits['cd'] . '\',\'' . $admits['av'] . '\')';
+
+*/
 ?>
