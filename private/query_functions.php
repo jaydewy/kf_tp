@@ -369,6 +369,10 @@ function get_fees($fee_type) {
   return $result;
 }
 
+
+/* Payment queries */
+
+/*
 // returns payment amount
 function get_payment($lot_id) {
   global $db;
@@ -387,7 +391,28 @@ function get_payment($lot_id) {
   }
   else return $payment['payment_amount'];
 }
+*/
 
+// insert_payment() inserts a new payment record to the payments table
+//  Input: $amount - total payment amount
+//         $method - payment method - Cash, Cheque, Debit, MO, Credit
+function insert_payment($amount, $method) {
+  global $db;
+
+  $date = date('Y-m-d');
+
+  $sql = 'INSERT INTO payments (payment_date,payment_amount,payment_method) ';
+  $sql .= 'VALUES (' . "\'$date\'," . "\'$amount\'," . "\'$method\')";
+
+  echo $sql;
+
+  $result = mysqli_query($db,$sql);
+  confirm_result_set($result);
+  $payment_id = mysqli_insert_id($db);
+  return $payment_id;
+}
+
+/*
 // insert_reg_payment() inserts a new payment record in the db for a registration payment.
 function insert_reg_payment($lot_id, $total, $method, $year_paid = 2021) {
   global $db;
@@ -403,7 +428,7 @@ function insert_admit_payment($total, $method) {
   $date = date('Y-m-d');
   $type = 'admission';
 }
-
+*/
 /* Admission queries */
 // insert_admission() adds an entry to the admissions table, for trailer park purposes
 //  Input:
@@ -422,5 +447,49 @@ function insert_admission($licence_plate, $adult_admits, $child_admits, $additio
   $result = mysqli_query($db,$sql);
   confirm_result_set($result);
   return $result;
+}
+
+/* Preregistration queries */
+
+// insert_prereg() inserts a new prereg record in the preregistration table
+//  Input: $lot_id - the lot id of the lot being preregistered
+//         $payment_id - the payment_id used to preregister
+//         $notes - any notes on the preregistration e.g. partial payment etc.
+//  Output: the new id for the preregistration entry
+function insert_prereg($lot_id, $payment_id, $notes) {
+  global $db;
+  $date = date('Y-m-d');
+  $sql = 'INSERT INTO preregistrations (date,lot_id,payment_id,notes)';
+  $sql .= 'VALUES (' . "\'$date\'," . "\'$lot_id\'," . "\'$payment_id\'," . "\'$notes\')";
+
+  $result = mysqli_query($db, $sql);
+  confirm_result_set($result);
+  $prereg_id = mysqli_insert_id($db);
+  return $prereg_id;
+}
+
+/* Compound queries - these queries work on more than one table in the db */
+/* functions should use other defined functions to perform inserts etc. */
+function register() {
+
+}
+
+// preregister() inserts a row to the payment table and then inserts a row in the
+//   preregistration table corresponding to the new payment_id
+// Input: $lot_ids - array of lot_ids
+//        $payment - total payment amount
+//        $method - payment method
+// Output: assoc array of lot_id/new id pairs from preregistration table
+function preregister($lot_ids, $payment, $method) {
+  global $db;
+
+  $prereg_ids = [];
+
+  $payment_id = insert_payment($amount, $method);
+  foreach ($lot_ids as $lot_id) {
+    $prereg_id = insert_prereg($lot_id, $payment_id, $notes);
+    $prereg_ids[$lot_id] = $prereg_id;
+  }
+  return $prereg_ids;
 }
 ?>

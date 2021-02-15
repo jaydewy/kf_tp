@@ -49,7 +49,7 @@ else {
         <label>Postal Code: <input type="text" name="postal_code" value="<?php echo h($customer['postal_code']); ?>"></label><br>
         <label>Telephone: <input type="text" name="telephone" value="<?php echo h($customer['telephone']); ?>"></label><br>
         <label>Cell Phone: <input type="text" name="cell_phone" value="<?php echo h($customer['cell_phone']); ?>"></label><br>
-        <label>Email: <input type="text" name="email" value="<?php echo h($customer['email']); ?>"></label><br>
+        <label>Email: <input type="email" name="email" value="<?php echo h($customer['email']); ?>"></label><br>
         <input type="hidden" name="id" value="<?php echo h($_GET['people_id']); ?>">
         <input type="submit" value="Update"><input type="reset">
       </form>

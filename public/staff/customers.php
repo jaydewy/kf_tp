@@ -3,7 +3,7 @@
 
   if (isset($_GET['command']) && isset($_GET['people_id'])) {
     if ($_GET['command'] == 'Edit') {
-      redirect_to(url_for('/staff/update.php?people_id=' . $_GET['people_id']));
+      redirect_to(url_for('/staff/cust_update.php?people_id=' . $_GET['people_id']));
     }
     else if ($_GET['command'] == 'Show Customer Lots') {
       redirect_to(url_for('/staff/lots.php?people_id=' . $_GET['people_id']));
@@ -22,7 +22,7 @@
 ?>
 
     <div class="toolbar">
-      <a href="<?php echo url_for('staff/new.php'); ?>"><button class="toolbar_button" type="button">New Customer</button></a>
+      <a href="<?php echo url_for('staff/cust_new.php'); ?>"><button class="toolbar_button" type="button">New Customer</button></a>
       <input class="toolbar_button" form="main" type="submit" name="command" value="Edit">
       <input class="toolbar_button" form="main" type="submit" name="command" value="Show Customer Lots">
       <!--<input class="toolbar_button" form="main" type="submit" name="command" value="Delete">-->

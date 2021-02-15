@@ -16,6 +16,7 @@
  ?>
 
     <div class="content">
+      <p>Customer must be <a href="<?php echo url_for('/staff/new.php'); ?>">added</a> to the database before adding to the waitlist.</p>
       <div class="">
         <form class="" id="waitlist-add-form" action="" method="post">
           <!-- figure out safe way to target self -->
@@ -25,10 +26,10 @@
               <option value="<?php echo $cust['people_id']; ?>"><?php echo $cust['last_name'] . ', ' . $cust['first_name']; ?></option>
             <?php } ?>
           </select> <br>
-          <label>Trailer Size
+          <label>Trailer Size (ft)
           <input type="number" name="trailer-length" required></label><br>
           <label>Lot Preference
-          <input type="text" name="lot-preference"></label><br>
+          <input type="text" name="lot-preference"></label>(enter as comma delimited string, e.g. 102,103,104)<br>
           <label>Notes
           <input type="text" name="notes"></label><br>
           <input type="hidden" name="date" value="">
