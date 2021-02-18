@@ -20,6 +20,8 @@
   // $lot_ids = [601, 602, 603];
   // $regids = register($lot_ids, $admits, $total, $meth);
   // var_dump($regids);
+  // insert_checkin(601);
+  // insert_checkin(601,['payment_id' => 190, 'admit_id' => 8, 'prereg_id' => 'NULL']);
 ?>
 
 <?php require_once(SHARED_PATH . '/staff_footer.php'); ?>

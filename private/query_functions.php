@@ -326,19 +326,16 @@ function get_fees($fee_type) {
 //         $payment_id - the payment_if of the payment used to register
 //         $admit_id - the id of the admissions associated with this registration
 //  Output: the id of the new record in the checkins table
-function insert_checkin($lot_id, $payment_id, $admit_id) {
+function insert_checkin($lot_id, $id_array = ['payment_id' => 'NULL', 'admit_id' => 'NULL', 'prereg_id' => 'NULL']) {
   global $db;
 
   $date = date('Y-m-d');
 
-  if ($admit_id == 0) {
-    $sql = 'INSERT INTO checkins (date,lot_id,payment_id) ';
-    $sql .= 'VALUES (' . '\'' . $date . '\',' . '\'' . $lot_id . '\',' . '\'' . $payment_id . '\')';
-  }
-  else {
-    $sql = 'INSERT INTO checkins (date,lot_id,payment_id,admit_id) ';
-    $sql .= 'VALUES (' . '\'' . $date . '\',' . '\'' . $lot_id . '\',' . '\'' . $payment_id . '\',' . '\'' . $admit_id . '\')';
-  }
+  $sql = 'INSERT INTO checkins (date,lot_id,payment_id,admit_id,prereg_id) ';
+  $sql .= 'VALUES (' . '\'' . $date . '\',' . $lot_id . ',';
+  $sql .= $id_array['payment_id'] . ',' . $id_array['admit_id'] . ',' . $id_array['prereg_id'] . ')';
+
+  // echo $sql . "\n";
 
   $result = mysqli_query($db, $sql);
   confirm_result_set($result);
@@ -346,18 +343,18 @@ function insert_checkin($lot_id, $payment_id, $admit_id) {
   return $reg_id;
 }
 
-// select_checkin()
-//  Input:
-//  Output:
+// select_checkin() returns an array of checkin_ids for the given lot_id
+//  Input: $lot_id - the lot_id of the lot for which checkins are being requested
+//  Output: array of checkin_id corresponding to the lot_id input
 function select_checkin($lot_id) {
   global $db;
 
-  $sql = 'SELECT * FROM checkins WHERE ';
+  $sql = 'SELECT checkin_id FROM checkins WHERE ';
   $sql .= 'lot_id=' . '\'' . $lot_id . '\'';
 
   $result = mysqli_query($db, $sql);
   confirm_result_set($result);
-  $
+
 }
 
 /* Payment queries */
@@ -427,24 +424,39 @@ function insert_prereg($lot_id, $payment_id, $notes) {
   return $prereg_id;
 }
 
-// select_prereg() returns all prereg records for the given lot_id
-//  Input: $lot_id - id of the lot in question
-//  Output: array of prereg ids found for the lot
-function select_prereg($lot_id) {
+// select_prereg() returns the prereg record for the given id
+//  Input: $prereg_id - id of the prereg record
+//  Output: mysqli result set
+function select_prereg($prereg_id) {
   global $db;
 
-  $sql = 'SELECT prereg_id FROM preregistrations WHERE ';
-  $sql .= 'lot_id=' . '\'' . $lot_id . '\'';
+  $sql = 'SELECT * FROM preregistrations WHERE ';
+  $sql .= 'prereg_id=' . '\'' . $prereg_id . '\'';
 
   $result = mysqli_query($db, $sql);
   confirm_result_set($result);
 
-  $prereg_ids = mysqli_fetch_assoc($result);
-  return $prereg_ids;
+  return $result;
 }
 
 /* Compound queries - these queries work on more than one table in the db */
 /* functions should use other defined functions to perform inserts etc. */
+
+// find_prereg() returns preregistrations for the given lot id that have not
+//  been registered before
+//  Input: $lot_id - the id of the lot in question
+//  Output: the id(s) of the preregistration(s) found in an array
+function find_prereg($lot_id) {
+  global $db;
+
+  $sql = 'SELECT preregistrations.prereg_id FROM preregistrations LEFT JOIN ';
+  $sql .= 'checkins ON preregistrations.prereg_id=checkins.prereg_id WHERE ';
+  $sql .= 'preregistrations.lot_id=' . '\'' . $lot_id . '\' AND ISNULL(checkins.checkin_id)';
+
+  $result = mysqli_query($db, $sql);
+  confirm_result_set($result);
+  return $result;
+}
 
 
 // register() inserts a row into the payment table, if required, and then inserts
@@ -460,18 +472,37 @@ function select_prereg($lot_id) {
 // Output: assoc array of lot_id/new id pairs from the checkins table
 function register($lot_ids, $admits, $payment, $method) {
   global $db;
-  $date = date('Y-m-d');
   $reg_ids = [];
 
-  $payment_id = insert_payment($payment, $method);
+  // payment record created if $payment is positive
+  if ($payment > 0) {
+    $payment_id = insert_payment($payment, $method);
+  }
+  else $payment_id = 'NULL';
+
+  // admission records are created for each lot, if applicable. checkin records are created for each lot.
   foreach ($lot_ids as $lot_id) {
+    // check if admission record needs created
     if ($admits[$lot_id] == 0) {
-      $admit_id = NULL;
+      $admit_id = 'NULL';
     }
     else {
       $admit_id = insert_admission($payment_id, $admits[$lot_id]);
     }
-    $reg_id = insert_checkin($lot_id, $payment_id, $admit_id);
+    // check if this lot has an unused preregistration
+    $prereg = find_prereg($lot_id);
+    if (mysqli_num_rows($prereg) == 0) { // no unused prereg, not preregistered
+      $prereg_id = 'NULL';
+    }
+    else if (mysqli_num_rows($prereg) == 1) { // exactly one prereg, preregistered
+      $prereg = mysqli_fetch_assoc($prereg);
+      $prereg_id = $prereg['prereg_id'];
+    }
+    else { // more than one unused preregistration - unusual scenario - implement later
+
+    }
+    $id_array = ['payment_id' => $payment_id, 'admit_id' => $admit_id, 'prereg_id' => $prereg_id]; // form $id_array = ['payment_id' => 'NULL', 'admit_id' => 'NULL', 'prereg_id' => 'NULL'])
+    $reg_id = insert_checkin($lot_id, $id_array);
     $reg_ids[$lot_id] = $reg_id;
   }
   return $reg_ids;
@@ -486,7 +517,6 @@ function register($lot_ids, $admits, $payment, $method) {
 // Output: assoc array of lot_id/new id pairs from preregistration table
 function preregister($lot_ids, $payment, $method) {
   global $db;
-
   $prereg_ids = [];
 
   $payment_id = insert_payment($payment, $method);
@@ -497,14 +527,9 @@ function preregister($lot_ids, $payment, $method) {
   return $prereg_ids;
 }
 
-// find_prereg() returns preregistrations for the given lot id that have not
-//  been registered before
-//  Input: $lot_id - the id of the lot in question
-//  Output: the id(s) of the preregistration(s) found in an array
-function find_prereg($lot_id) {
-  global $db;
 
-}
+
+
 
 // old queries - have been replaced above. Keep down here for now
 /*
@@ -597,6 +622,43 @@ function reg_lot_payments($lot_list) {
     db_disconnect($db);
     exit;
   }
+}
+
+function insert_checkin($lot_id, $payment_id, $admit_id) {
+  global $db;
+
+  $date = date('Y-m-d');
+
+  if ($admit_id == 0) {
+    $sql = 'INSERT INTO checkins (date,lot_id,payment_id) ';
+    $sql .= 'VALUES (' . '\'' . $date . '\',' . '\'' . $lot_id . '\',' . '\'' . $payment_id . '\')';
+  }
+  else {
+    $sql = 'INSERT INTO checkins (date,lot_id,payment_id,admit_id) ';
+    $sql .= 'VALUES (' . '\'' . $date . '\',' . '\'' . $lot_id . '\',' . '\'' . $payment_id . '\',' . '\'' . $admit_id . '\')';
+  }
+
+  $result = mysqli_query($db, $sql);
+  confirm_result_set($result);
+  $reg_id = mysqli_insert_id($db);
+  return $reg_id;
+}
+
+function insert_checkin($lot_id, $payment_id = 'NULL', $admit_id = 'NULL', $prereg_id = 'NULL') {
+  global $db;
+
+  $date = date('Y-m-d');
+
+  $sql = 'INSERT INTO checkins (date,lot_id,payment_id,admit_id,prereg_id) ';
+  $sql .= 'VALUES (' . '\'' . $date . '\',' . $lot_id . ',';
+  $sql .= $payment_id . ',' . $admit_id . ',' . $prereg_id . ')';
+
+  echo $sql . "\n";
+
+  $result = mysqli_query($db, $sql);
+  confirm_result_set($result);
+  $reg_id = mysqli_insert_id($db);
+  return $reg_id;
 }
 */
 ?>
