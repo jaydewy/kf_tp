@@ -283,21 +283,21 @@ function reg_search_lotname($name) {
 // Output:
 function reg_lot_list($lot_list) {
   global $db;
-  global $reg_year;
 
-  $sql = 'SELECT lots.lot_id,lots.lot_name,payments.payment_id,payments.payment_amount,payments.payment_date ';
-  $sql .= 'FROM lots LEFT JOIN payments ON lots.lot_id=payments.lot_id WHERE ';
-  $sql .= 'lots.lot_id IN (';
-  foreach ($lot_list as $lot_id) {
-    $sql .= "'$lot_id',";
+  foreach ($lot_list as $lot) {
+    $prereg = find_prereg($lot_id);
+    if (mysqli_num_rows($prereg) == 0) { // no unused prereg, not preregistered
+      $prereg_id = 'NULL';
+    }
+    else if (mysqli_num_rows($prereg) == 1) { // exactly one prereg, preregistered
+      $prereg = mysqli_fetch_assoc($prereg);
+      $prereg_id = $prereg['prereg_id'];
+    }
+    else { // more than one unused preregistration - use the oldest one
+
+    }
+
   }
-  $sql = rtrim($sql,",");
-  $sql .= ") AND ((payment_type = 'preregistration' "; // still needs work, this will exclude a lot with an old prepayment
-  $sql .= "AND year_paid = '$reg_year') ";
-  $sql .= "OR payment_type IS NULL)"; // this condition ensures that records for
-                                      //  lots with no prepayments are returned
-
-//  echo $sql; // testing purposes, remove in production
 
   $result = mysqli_query($db, $sql);
 
@@ -424,20 +424,27 @@ function insert_prereg($lot_id, $payment_id, $notes) {
   return $prereg_id;
 }
 
-// select_prereg() returns the prereg record for the given id
+// select_prereg() returns the prereg record joined with the payment record
+//  for the given id
 //  Input: $prereg_id - id of the prereg record
 //  Output: mysqli result set
 function select_prereg($prereg_id) {
   global $db;
 
-  $sql = 'SELECT * FROM preregistrations WHERE ';
-  $sql .= 'prereg_id=' . '\'' . $prereg_id . '\'';
+  $sql = 'SELECT * FROM preregistrations INNER JOIN payments ON ';
+  $sql .= 'preregistrations.payment_id=payments.payment_id WHERE ';
+  $sql .= 'preregistrations.prereg_id=' . '\'' . $prereg_id . '\'';
 
   $result = mysqli_query($db, $sql);
   confirm_result_set($result);
 
   return $result;
 }
+
+// get_prereg_payment() returns the payment record corresponding to the given prereg id
+// Input: $prereg_id - the id of the preregistration record
+// Output: the mysqli result set for the payment record corresponding to the input
+function get_prereg_payment() {}
 
 /* Compound queries - these queries work on more than one table in the db */
 /* functions should use other defined functions to perform inserts etc. */
@@ -660,5 +667,30 @@ function insert_checkin($lot_id, $payment_id = 'NULL', $admit_id = 'NULL', $prer
   $reg_id = mysqli_insert_id($db);
   return $reg_id;
 }
+
+function reg_lot_list($lot_list) {
+  global $db;
+  global $reg_year;
+
+  $sql = 'SELECT lots.lot_id,lots.lot_name,payments.payment_id,payments.payment_amount,payments.payment_date ';
+  $sql .= 'FROM lots LEFT JOIN payments ON lots.lot_id=payments.lot_id WHERE ';
+  $sql .= 'lots.lot_id IN (';
+  foreach ($lot_list as $lot_id) {
+    $sql .= "'$lot_id',";
+  }
+  $sql = rtrim($sql,",");
+  $sql .= ") AND ((payment_type = 'preregistration' "; // still needs work, this will exclude a lot with an old prepayment
+  $sql .= "AND year_paid = '$reg_year') ";
+  $sql .= "OR payment_type IS NULL)"; // this condition ensures that records for
+                                      //  lots with no prepayments are returned
+
+//  echo $sql; // testing purposes, remove in production
+
+  $result = mysqli_query($db, $sql);
+
+  confirm_result_set($result);
+  return $result;
+}
+
 */
 ?>
